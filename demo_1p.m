@@ -1,4 +1,4 @@
-% demo file for applying the NoRMCorre motion correction algorithm on 
+% demo file for applying the NoRMCorre motion correction algorithm on
 % 1-photon widefield imaging data
 % Example file is provided from the miniscope project page
 % www.miniscope.org
@@ -21,17 +21,17 @@ Yf = single(Yf);
 
 %% perform some sort of deblurring/high pass filtering
 
-if (0)    
+if (0)
     hLarge = fspecial('average', 40);
-    hSmall = fspecial('average', 2); 
+    hSmall = fspecial('average', 2);
     for t = 1:T
         Y(:,:,t) = filter2(hSmall,Yf(:,:,t)) - filter2(hLarge, Yf(:,:,t));
     end
     %Ypc = Yf - Y;
     bound = size(hLarge,1);
 else
-    gSig = 7; 
-    gSiz = 3*gSig; 
+    gSig = 7;
+    gSiz = 3*gSig;
     psf = fspecial('gaussian', round(2*gSiz), gSig);
     ind_nonzero = (psf(:)>=max(psf(:,1)));
     psf = psf-mean(psf(ind_nonzero));
@@ -50,7 +50,7 @@ tic; [M1,shifts1,template1] = normcorre_batch(Y(bound/2+1:end-bound/2,bound/2+1:
     % exclude boundaries due to high pass filtering effects
 tic; Mr = apply_shifts(Yf,shifts1,options_r,bound/2,bound/2); toc % apply shifts to full dataset
     % apply shifts on the whole movie
-%% compute metrics 
+%% compute metrics
 [cY,mY,vY] = motion_metrics(Y(bound/2+1:end-bound/2,bound/2+1:end-bound/2,:),options_r.max_shift);
 [cYf,mYf,vYf] = motion_metrics(Yf,options_r.max_shift);
 
@@ -86,7 +86,7 @@ tic; Mpr = apply_shifts(Yf,shifts2,options_nr,bound/2,bound/2); toc % apply the 
 [cM2,mM2,vM2] = motion_metrics(M2,options_nr.max_shift);
 [cM2f,mM2f,vM2f] = motion_metrics(Mpr,options_nr.max_shift);
 
-%% plot shifts        
+%% plot shifts
 
 shifts_r = squeeze(cat(3,shifts1(:).shifts));
 shifts_nr = cat(ndims(shifts2(1).shifts)+1,shifts2(:).shifts);
@@ -106,7 +106,7 @@ figure;
     ax3 = subplot(313); plot(shifts_y); hold on; plot(shifts_r(:,1),'--k','linewidth',2); title('displacements along y','fontsize',14,'fontweight','bold')
             xlabel('timestep','fontsize',14,'fontweight','bold')
     linkaxes([ax1,ax2,ax3],'x')
-    
+
 %% display downsampled data
 
 tsub = 5;
@@ -121,7 +121,7 @@ nnY_ds = quantile(Y_ds(:),0.0005);
 mmY_ds = quantile(Y_ds(:),0.9995);
 nnYf_ds = quantile(Yf_ds(:),0.0005);
 mmYf_ds = quantile(Yf_ds(:),0.99995);
-%%  
+%%
 
 make_avi = false; % save a movie
 if make_avi
@@ -142,7 +142,7 @@ for t = 1:1:size(Y_ds,3)
         colormap('bone');
         set(gca,'XTick',[],'YTick',[]);
         subplot(132);imagesc(M1_ds(:,:,t),[nnY_ds,mmY_ds]); xlabel('rigid corrected','fontsize',14,'fontweight','bold'); axis equal; axis tight;
-        title(sprintf('Frame %i out of %i',t,size(Y_ds,3)),'fontweight','bold','fontsize',14); 
+        title(sprintf('Frame %i out of %i',t,size(Y_ds,3)),'fontweight','bold','fontsize',14);
         colormap('bone')
         set(gca,'XTick',[],'YTick',[]);
         subplot(133);imagesc(M2_ds(:,:,t),[nnY_ds,mmY_ds]); xlabel('non-rigid corrected','fontsize',14,'fontweight','bold'); axis equal; axis tight;
@@ -154,7 +154,7 @@ for t = 1:1:size(Y_ds,3)
         colormap('bone');
         set(gca,'XTick',[],'YTick',[]);
         subplot(132);imagesc(M1f_ds(:,:,t),[nnYf_ds,mmYf_ds]); xlabel('rigid corrected','fontsize',14,'fontweight','bold'); axis equal; axis tight;
-        title(sprintf('Frame %i out of %i',t,size(Y_ds,3)),'fontweight','bold','fontsize',14); 
+        title(sprintf('Frame %i out of %i',t,size(Y_ds,3)),'fontweight','bold','fontsize',14);
         colormap('bone')
         set(gca,'XTick',[],'YTick',[]);
         subplot(133);imagesc(M2f_ds(:,:,t),[nnYf_ds,mmYf_ds]); xlabel('non-rigid corrected','fontsize',14,'fontweight','bold'); axis equal; axis tight;
@@ -162,9 +162,9 @@ for t = 1:1:size(Y_ds,3)
         set(gca,'XTick',[],'YTick',[]);
     end
     drawnow;
-    if make_avi  
+    if make_avi
         currFrame = getframe(fig);
-        writeVideo(vidObj,currFrame);    
+        writeVideo(vidObj,currFrame);
     end
 end
 if make_avi

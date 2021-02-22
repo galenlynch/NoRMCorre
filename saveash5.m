@@ -33,4 +33,4 @@ else
     start_point = [ones(1,nd),info.Datasets.Dataspace.Size(end)+1];
 end
 
-h5write(path_to_file,options.groupname,data,start_point,size(data));
+h5write(path_to_file, options.groupname, data, start_point, size(data));

@@ -14,7 +14,7 @@ Names = [
     % patches
     'grid_size          ' % size of non-overlapping regions (default: [d1,d2,d3])
     'overlap_pre        ' % size of overlapping region (default: [32,32,16])
-    'min_patch_size     ' % minimum size of patch (default: [32,32,16])    
+    'min_patch_size     ' % minimum size of patch (default: [32,32,16])
     'min_diff           ' % minimum difference between patches (default: [16,16,5])
     'us_fac             ' % upsampling factor for subpixel registration (default: 20)
     'mot_uf             ' % degree of patches upsampling (default: [4,4,1])
@@ -60,8 +60,8 @@ Names = [
     'nFrames            ' % number of frames to average (default: 50)
     'bidir_us           ' % upsampling factor for bidirectional sampling (default: 10)
     'col_shift          ' % known bi-directional offset provided by the user (default: [])
-   ]; 
-   
+   ];
+
 [m,n] = size(Names);
 names = lower(Names);
 
@@ -100,12 +100,12 @@ end
 expectval = 0;                          % start expecting a name, not a value
 while i <= nargin
     arg = varargin{i};
-    
+
     if ~expectval
         if ~ischar(arg)
             error(sprintf('Expected argument %d to be a string parameter name.', i));
         end
-        
+
         lowArg = lower(arg);
         j = strmatch(lowArg,names);
         if isempty(j)                       % if no matches
@@ -126,11 +126,11 @@ while i <= nargin
             end
         end
         expectval = 1;                      % we expect a value next
-        
+
     else
         eval(['options.' Names(j,:) '= arg;']);
         expectval = 0;
-        
+
     end
     i = i + 1;
 end
@@ -141,13 +141,13 @@ end
 
 Values = [
  % dataset info
-    {[]} 
+    {[]}
     {[]}
     {1}
     % patches
     {[]}                  % size of non-overlapping regions (default: [d1,d2,d3])
     {[32,32,16]}          % size of overlapping region (default: [32,32,16])
-    {[32,32,16]}          % minimum size of patch (default: [32,32,16])    
+    {[32,32,16]}          % minimum size of patch (default: [32,32,16])
     {[16,16,5]}           % minimum difference between patches (default: [16,16,5])
     {50}                  % upsampling factor for subpixel registration (default: 50)
     {[4,4,1]}             % degree of patches upsampling (default: [4,4,1])
@@ -175,8 +175,8 @@ Values = [
     {false}               % flag for plotting results in real time (default: false)
     {false}               % flag for making movie (default: false)
     {'motion_corrected.avi'} % name for movie (default: 'motion_corrected.avi')
-    {30} % frame rate for movie (default: 30)   
-    % output_type    
+    {30} % frame rate for movie (default: 30)
+    % output_type
     {'mat'}
     {'mov'}
     {'motion_corrected.h5'}
@@ -209,7 +209,7 @@ if ~isempty(options.output_filename)
     end
     if strcmpi(options.tiff_filename,'motion_corrected.tif') && (strcmpi(out_type,'tif') || strcmpi(out_type,'tiff'))
         options.tiff_filename = [output_filename,'.tif'];
-    end    
+    end
 end
 
 if isempty(options.d1); options.d1 = input('What is the total number of rows? \n'); end

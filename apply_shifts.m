@@ -6,8 +6,8 @@ function M_final = apply_shifts(Y,shifts,options,td1,td2,td3,col_shift)
 % Y:                Input data, can be already loaded in memory as a 3D
 %                   tensor, a memory mapped file, or a pointer to a tiff stack
 % shifts:           calculated shifts
-% options:          options structure for motion correction 
-% td1,td2,td3:      extend patches on the boundaries by that much        
+% options:          options structure for motion correction
+% td1,td2,td3:      extend patches on the boundaries by that much
 
 % OUTPUTS
 % I:                registered data
@@ -56,7 +56,7 @@ if isa(Y,'char')
         T = v.Duration*v.FrameRate;
         sizY = [v.Height,v.Width,T];
         data_type = class(readFrame(v));
-    end    
+    end
 elseif isobject(Y)
     filetype = 'mem';
     sizY = size(Y,'Y');
@@ -78,7 +78,7 @@ T = length(shifts);
 
 if sizY(end) == T && T > 1
     flag_constant = false;
-    nd = length(sizY)-1;   
+    nd = length(sizY)-1;
     sizY = sizY(1:end-1);
 else
     flag_constant = true;
@@ -117,8 +117,8 @@ if strcmpi(options.shifts_method,'fft')
                 nc = ifftshift(-fix(nc/2):ceil(nc/2)-1);
                 np = ifftshift(-fix(np/2):ceil(np/2)-1);
                 [Nc{i,j,k},Nr{i,j,k},Np{i,j,k}] = meshgrid(nc,nr,np);
-                extended_grid = [max(xx_us(i)-options.overlap_post(1),1),min(xx_uf(i)+options.overlap_post(1),d1),max(yy_us(j)-options.overlap_post(2),1),min(yy_uf(j)+options.overlap_post(2),d2),max(zz_us(k)-options.overlap_post(3),1),min(zz_uf(k)+options.overlap_post(3),d3)];            
-                Bs{i,j,k} = permute(construct_weights([xx_us(i),xx_uf(i),yy_us(j),yy_uf(j),zz_us(k),zz_uf(k)],extended_grid),[2,1,3]); 
+                extended_grid = [max(xx_us(i)-options.overlap_post(1),1),min(xx_uf(i)+options.overlap_post(1),d1),max(yy_us(j)-options.overlap_post(2),1),min(yy_uf(j)+options.overlap_post(2),d2),max(zz_us(k)-options.overlap_post(3),1),min(zz_uf(k)+options.overlap_post(3),d3)];
+                Bs{i,j,k} = permute(construct_weights([xx_us(i),xx_uf(i),yy_us(j),yy_uf(j),zz_us(k),zz_uf(k)],extended_grid),[2,1,3]);
             end
         end
     end
@@ -144,15 +144,15 @@ switch lower(options.output_type)
         M_final = matfile(options.mem_filename,'Writable',true);
         if nd == 2; M_final.Y(d1,d2,T) = zeros(1,data_type); end
         if nd == 3; M_final.Y(d1,d2,d3,T) = zeros(1,data_type); end
-        M_final.Yr(d1*d2*d3,T) = zeros(1,data_type);        
+        M_final.Yr(d1*d2*d3,T) = zeros(1,data_type);
     case {'hdf5','h5'}
         if exist(options.h5_filename,'file')
-            [pathstr,fname,ext] = fileparts(options.h5_filename);             
+            [pathstr,fname,ext] = fileparts(options.h5_filename);
             new_filename = fullfile(pathstr,[fname,'_',datestr(now,30),ext]);
-            warning_msg = ['File ',options.h5_filename,'already exists. Saving motion corrected file as',new_filename];            
+            warning_msg = ['File ',options.h5_filename,'already exists. Saving motion corrected file as',new_filename];
             warning('%s',warning_msg);
             options.h5_filename = new_filename;
-        end   
+        end
         M_final = options.h5_filename;
         if nd == 2
             h5create(options.h5_filename,['/',options.h5_groupname],[d1,d2,Inf],'Chunksize',[d1,d2,options.mem_batch_size],'Datatype',data_type);
@@ -165,16 +165,16 @@ switch lower(options.output_type)
         opts_tiff.big = true;
         if nd == 3
             error('Saving volumetric tiff stacks is currently not supported. Use a different filetype');
-        end        
+        end
     otherwise
         error('This filetype is currently not supported')
-end 
+end
 
 
 if exist('col_shift','var'); options.col_shift = col_shift; end
-if ~isempty(options.col_shift) 
-    col_shift = options.col_shift; 
-    options.correct_bidir = false; 
+if ~isempty(options.col_shift)
+    col_shift = options.col_shift;
+    options.correct_bidir = false;
 elseif ~options.correct_bidir
     col_shift = 0;
 end
@@ -215,14 +215,14 @@ for t = 1:bin_width:T
 %    if ~flag_constant
     if nd == 2; Ytc = mat2cell(Ytm,d1,d2,ones(1,size(Ytm,3))); end
     if nd == 3; Ytc = mat2cell(Ytm,d1,d2,d3,ones(1,size(Ytm,4))); end
-    
+
     Mf = cell(size(Ytc));
     lY = length(Ytc);
     shifts_temp = shifts(t:t+lY-1);
-    
+
     switch lower(options.shifts_method)
-        case 'fft'            
-            parfor ii = 1:lY 
+        case 'fft'
+            parfor ii = 1:lY
                 Yc = mat2cell_ov(Ytc{ii},xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,options.overlap_post,[d1,d2,d3]);
                 Yfft = cellfun(@(x) fftn(x),Yc,'un',0);
                 minY = min(Ytc{ii}(:));
@@ -242,21 +242,21 @@ for t = 1:bin_width:T
                     gz = max(abs(reshape(diff(shifts_up,[],3),[],1)));
                     flag_interp = max([gx;gy;gz;0])<0.5;      % detect possible smearing
 
-                    if flag_interp    
+                    if flag_interp
                         Mf{ii} = cell2mat_ov_sum(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,options.overlap_post,sizY,Bs);
-                    else            
+                    else
                         Mf{ii} = cell2mat_ov(M_fin,xx_us,xx_uf,yy_us,yy_uf,zz_us,zz_uf,options.overlap_post,sizY);
-                    end                
+                    end
                 end
                 Mf{ii}(Mf{ii}<minY) = minY;
-                Mf{ii}(Mf{ii}>maxY) = maxY;    
+                Mf{ii}(Mf{ii}>maxY) = maxY;
             end
         otherwise
             parfor ii = 1:lY
                 minY = min(Ytc{ii}(:));
                 maxY = max(Ytc{ii}(:));
                 shifts_temp(ii).shifts_up = shifts_temp(ii).shifts;
-                if nd == 3                                    
+                if nd == 3
                     shifts_up = zeros([d1,d2,d3,3]);
                     if numel(shifts_temp(ii).shifts) > 3
                         %tform = affine3d(diag([options.mot_uf(:);1]));
@@ -271,15 +271,15 @@ for t = 1:bin_width:T
                 else
                     shifts_up = imresize(shifts_temp(ii).shifts,[options.d1,options.d2]);
                     shifts_up(2:2:end,:,2) = shifts_up(2:2:end,:,2) + col_shift;
-                    Mf{ii} = imwarp(Ytc{ii},-cat(3,shifts_up(:,:,2),shifts_up(:,:,1)),options.shifts_method,'FillValues',fill_value);  
+                    Mf{ii} = imwarp(Ytc{ii},-cat(3,shifts_up(:,:,2),shifts_up(:,:,1)),options.shifts_method,'FillValues',fill_value);
                 end
                 Mf{ii}(Mf{ii}<minY) = minY;
                 Mf{ii}(Mf{ii}>maxY) = maxY;
             end
     end
-    
+
     Mf = cast(cell2mat(Mf),data_type);
-    
+
     switch lower(options.output_type)
         case 'mat'
             if nd == 2; M_final(:,:,t:min(t+bin_width-1,T)) = Mf; end
@@ -295,7 +295,7 @@ for t = 1:bin_width:T
         case {'tif','tiff'}
             saveastiff(cast(Mf,data_type),options.tiff_filename,opts_tiff);
     end
-    
+
     if print_msg
         str = sprintf('%i out of %i frames registered \n',t+lY-1,T);
         refreshdisp(str, prevstr, t);
