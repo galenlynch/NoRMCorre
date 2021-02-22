@@ -47,21 +47,21 @@ cnt = 1;
 while cnt < nf  % read filter and save file in chunks
     stopframe = min(nf, cnt + Options.chunksize - 1);
     Yf = single(rawdata(:, :, cnt:stopframe));
-    if isempty(Yf)
-        break
-    else
-        Y = imfilter(Yf, psf, 'symmetric');
-        clear Yf;
-        saveash5(Y, h5_name);
-        cnt = stopframe + 1;
-        clear Y;
-    end
+    Y = imfilter(Yf, psf, 'symmetric');
+    clear Yf;
+    saveash5(Y, h5_name);
+    clear Y;
+    cnt = stopframe + 1;
     disp(cnt)
 end
 
+outf = fullfile(writedir, sprintf('%s_motion_corrected.mat', file_name))
 %% first try out rigid motion correction
     % exclude boundaries due to high pass filtering effects
 options_r = NoRMCorreSetParms('d1', nx, 'd2', ny, ...
+                              'output_type', 'memmap', ...
+                              'mem_filename', outf, ...
+                              'memmap', true, ...
                               'bin_width', Options.bin_width, ...
                               'max_shift', Options.max_shift, ...
                               'iter', Options.iter, ...
